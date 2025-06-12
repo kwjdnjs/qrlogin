@@ -1,5 +1,7 @@
 package com.example.qrlogin.controller;
 
+import com.example.qrlogin.dto.LoginRequestDto;
+import com.example.qrlogin.dto.LoginResponseDto;
 import com.example.qrlogin.dto.SignUpRequestDto;
 import com.example.qrlogin.dto.SignUpResponseDto;
 import com.example.qrlogin.service.AuthService;
@@ -18,6 +20,12 @@ public class AuthController {
     @PostMapping("/api/signup")
     public ResponseEntity<?> signUp(@RequestBody SignUpRequestDto requestDto) {
         SignUpResponseDto responseDto = authService.signUp(requestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/api/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto requestDto) {
+        LoginResponseDto responseDto = authService.login(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 }
