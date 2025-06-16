@@ -7,6 +7,7 @@ import com.example.qrlogin.dto.SignUpResponseDto;
 import com.example.qrlogin.entity.Account;
 import com.example.qrlogin.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
     private final AccountRepository accountRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public SignUpResponseDto signUp(SignUpRequestDto requestDto) {
         if (accountRepository.existsByUsername(requestDto.getUsername())){
@@ -36,7 +37,7 @@ public class AuthService {
             throw new RuntimeException();
         }
 
-        Account account = accountRepository.findByEmail(requestDto.getEmail()).orElseThrow();
+        Account account = accountRepository.findByEmail(requestDto.getEmail());
 
         if (!passwordEncoder.matches(requestDto.getPassword(), account.getPassword())) {
             throw new RuntimeException();

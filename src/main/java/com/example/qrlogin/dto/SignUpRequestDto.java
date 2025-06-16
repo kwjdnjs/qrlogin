@@ -16,6 +16,6 @@ public class SignUpRequestDto {
     private String password;
 
     public Account toEntity() {
-        return new Account(null, email, username, password);
+        return new Account(null, email, username, password, null);
     }
 }
