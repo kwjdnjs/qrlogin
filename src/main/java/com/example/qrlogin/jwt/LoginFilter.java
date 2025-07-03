@@ -1,8 +1,10 @@
 package com.example.qrlogin.jwt;
 
 import com.example.qrlogin.dto.CustomUserDetails;
+import com.example.qrlogin.dto.LoginRequestDto;
 import com.example.qrlogin.entity.Refresh;
 import com.example.qrlogin.repository.RefreshRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,24 +19,39 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 
-@RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
+    private final ObjectMapper objectMapper;
+
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository, ObjectMapper objectMapper) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.refreshRepository = refreshRepository;
+        this.objectMapper = objectMapper;
+        setFilterProcessesUrl("/api/login");
+    }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        String username = obtainUsername(request);
-        String password = obtainPassword(request);
+        try {
+            LoginRequestDto loginRequestDto = objectMapper.readValue(request.getInputStream(), LoginRequestDto.class);
+            String username = loginRequestDto.getUsername();
+            String password = loginRequestDto.getPassword();
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
 
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
+            return authenticationManager.authenticate(authToken);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        return authenticationManager.authenticate(authToken);
+        //return super.attemptAuthentication(request, response);
     }
 
     @Override

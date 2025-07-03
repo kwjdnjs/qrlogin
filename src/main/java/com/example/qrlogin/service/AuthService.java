@@ -31,18 +31,4 @@ public class AuthService {
 
         return new SignUpResponseDto(account.getUsername());
     }
-
-    public LoginResponseDto login(LoginRequestDto requestDto) {
-        if (!accountRepository.existsByEmail(requestDto.getEmail())) {
-            throw new RuntimeException();
-        }
-
-        Account account = accountRepository.findByEmail(requestDto.getEmail());
-
-        if (!passwordEncoder.matches(requestDto.getPassword(), account.getPassword())) {
-            throw new RuntimeException();
-        }
-
-        return new LoginResponseDto(account.getUsername());
-    }
 }

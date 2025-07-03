@@ -3,8 +3,9 @@ package com.example.qrlogin.config;
 import com.example.qrlogin.jwt.JWTFilter;
 import com.example.qrlogin.jwt.JWTUtil;
 import com.example.qrlogin.jwt.LoginFilter;
-import com.example.qrlogin.jwt.LogoutFilter;
+import com.example.qrlogin.jwt.CustomLogoutFilter;
 import com.example.qrlogin.repository.RefreshRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -32,6 +34,7 @@ public class Security {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
     private final RefreshRepository refreshRepository;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.url.front}")
     String url;
@@ -62,8 +65,8 @@ public class Security {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new LogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository, objectMapper), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
