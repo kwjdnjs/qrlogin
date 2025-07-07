@@ -1,21 +1,23 @@
 package com.example.qrlogin.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.redis.core.RedisHash;
 
-@Entity
+@RedisHash(value="refresh", timeToLive = 86400)
 @Getter
 @Setter
+@AllArgsConstructor
 public class Refresh {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String username;
     private String refresh;
-    private String expiration;
+
+
+    public static Refresh create(String username, String refresh) {
+        return new Refresh(null, username, refresh);
+    }
 }

@@ -21,34 +21,21 @@ public class JwtService {
     private final RefreshRepository refreshRepository;
 
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
-        String refresh = jwtUtil.getRefreshFromRequest(request);
-        if (refresh == null) {
+        String refresh = null;
 
-            //response status code
-            return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
-        }
-
-        //expired check
         try {
+            refresh = jwtUtil.getRefreshFromRequest(request);
             jwtUtil.isExpired(refresh);
-        } catch (ExpiredJwtException e) {
-
+        } catch (Exception e) {
             //response status code
             return new ResponseEntity<>("refresh token expired", HttpStatus.BAD_REQUEST);
         }
 
-        // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
-        String category = jwtUtil.getCategory(refresh);
-        if (!category.equals("refresh")) {
-
-            //response status code
+        if (!jwtUtil.isRefresh(refresh)) {
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
 
-        Boolean isExist = refreshRepository.existsByRefresh(refresh);
-        if (!isExist) {
-
-            //response body
+        if (!refreshRepository.existsByRefresh(refresh)) {
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
 
@@ -60,24 +47,12 @@ public class JwtService {
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
         refreshRepository.deleteByRefresh(refresh);
-        addRefreshEntity(username, newRefresh, 86400000L);
+        refreshRepository.save(Refresh.create(username, refresh));
 
         //response
         response.setHeader("access", newAccess);
         response.addCookie(jwtUtil.createCookie("refresh", newRefresh, 24*60*60));
 
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    private void addRefreshEntity(String username, String refreshToken, Long expiredMs) {
-
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-        Refresh refresh = new Refresh();
-        refresh.setUsername(username);
-        refresh.setRefresh(refreshToken);
-        refresh.setExpiration(date.toString());
-
-        refreshRepository.save(refresh);
     }
 }

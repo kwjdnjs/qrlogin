@@ -1,5 +1,8 @@
 package com.example.qrlogin.jwt;
 
+import com.example.qrlogin.entity.Refresh;
+import com.example.qrlogin.exception.CustomException;
+import com.example.qrlogin.exception.ErrorCode;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +41,12 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
+    public Boolean isRefresh(String token) {
+        if (getCategory(token).equals("refresh")) {
+            return true;
+        } else { return false; }
+    }
+
     public String createJwt(String category, String username, String role, Long expiredMs) {
 
         return Jwts.builder()
@@ -64,12 +73,20 @@ public class JWTUtil {
     public String getRefreshFromRequest(HttpServletRequest request) {
         String refresh = null;
         Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
+
         for (Cookie cookie : cookies) {
 
             if (cookie.getName().equals("refresh")) {
 
                 refresh = cookie.getValue();
             }
+        }
+
+        if(refresh == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         return refresh;

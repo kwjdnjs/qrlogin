@@ -57,32 +57,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
         String username = authentication.getName();
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
-        String role = auth.getAuthority();
+        String role = getRoleFromAuthentication(authentication);
 
         String access = jwtUtil.createJwt("access", username, role, 60*10000L);
         String refresh = jwtUtil.createJwt("refresh", username, role, 8640*10000L);
 
-        addRefreshEntity(username, refresh, 86400000L);
+        refreshRepository.save(Refresh.create(username, refresh));
 
         response.setHeader("access", access);
         response.addCookie(jwtUtil.createCookie("refresh", refresh, 24*60*60));
         response.setStatus(HttpStatus.OK.value());
     }
 
-    private void addRefreshEntity(String username, String refreshToken, Long expiredMs) {
-
-        Date date = new Date(System.currentTimeMillis() + expiredMs);
-
-        Refresh refresh = new Refresh();
-        refresh.setUsername(username);
-        refresh.setRefresh(refreshToken);
-        refresh.setExpiration(date.toString());
-
-        refreshRepository.save(refresh);
+    private String getRoleFromAuthentication(Authentication authentication) {
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+        GrantedAuthority auth = iterator.next();
+        return auth.getAuthority();
     }
 
     @Override

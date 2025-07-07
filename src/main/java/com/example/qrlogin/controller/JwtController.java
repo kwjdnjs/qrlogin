@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class JwtController {
     private final JwtService jwtService;
 
-    @PostMapping("reissue")
+    @PostMapping("/api/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         return jwtService.reissue(request, response);
     }
