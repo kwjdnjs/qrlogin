@@ -60,8 +60,8 @@ public class Security {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/signup", "/api/login").permitAll()
-                        .requestMatchers("/reissue").permitAll()
+                        .requestMatchers("/api/signup", "/api/login", "/api/qr").permitAll()
+                        .requestMatchers("/api/reissue").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
