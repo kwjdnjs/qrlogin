@@ -5,8 +5,11 @@ import com.example.qrlogin.dto.LoginResponseDto;
 import com.example.qrlogin.dto.SignUpRequestDto;
 import com.example.qrlogin.dto.SignUpResponseDto;
 import com.example.qrlogin.entity.Account;
+import com.example.qrlogin.entity.QRSession;
+import com.example.qrlogin.enumrate.SessionStatus;
 import com.example.qrlogin.qr.QRUtil;
 import com.example.qrlogin.repository.AccountRepository;
+import com.example.qrlogin.repository.QRSessionRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService {
     private final AccountRepository accountRepository;
+    private final QRSessionRepository qrSessionRepository;
+
     private final BCryptPasswordEncoder passwordEncoder;
 
     public SignUpResponseDto signUp(SignUpRequestDto requestDto) {
@@ -41,9 +46,11 @@ public class AuthService {
         return new SignUpResponseDto(account.getUsername());
     }
 
-    public Map<String, Object> generateSeesionQR(HttpServletRequest request) throws Exception {
+    public Map<String, Object> generateSessionQR(HttpServletRequest request) throws Exception {
         HttpSession session = request.getSession(true);
         String sessionId = session.getId();
+
+        qrSessionRepository.save(QRSession.create(sessionId, SessionStatus.PENDING));
 
         var image = QRUtil.generateQRCodeImage("session:" + sessionId, 200, 200);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
