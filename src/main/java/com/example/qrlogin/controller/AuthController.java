@@ -1,9 +1,6 @@
 package com.example.qrlogin.controller;
 
-import com.example.qrlogin.dto.LoginRequestDto;
-import com.example.qrlogin.dto.LoginResponseDto;
-import com.example.qrlogin.dto.SignUpRequestDto;
-import com.example.qrlogin.dto.SignUpResponseDto;
+import com.example.qrlogin.dto.*;
 import com.example.qrlogin.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +33,10 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+*/
     @PostMapping("/api/qr/status")
     public ResponseEntity<?> SessionStatus(@RequestBody SessionStatusRequestDto requestDto) {
         SessionStatusResponseDto responseDto = authService.sessionStatus(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
-     */
 }

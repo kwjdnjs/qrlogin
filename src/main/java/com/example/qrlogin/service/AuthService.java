@@ -1,18 +1,17 @@
 package com.example.qrlogin.service;
 
-import com.example.qrlogin.dto.LoginRequestDto;
-import com.example.qrlogin.dto.LoginResponseDto;
-import com.example.qrlogin.dto.SignUpRequestDto;
-import com.example.qrlogin.dto.SignUpResponseDto;
+import com.example.qrlogin.dto.*;
 import com.example.qrlogin.entity.Account;
 import com.example.qrlogin.entity.QRSession;
 import com.example.qrlogin.enumrate.SessionStatus;
 import com.example.qrlogin.qr.QRUtil;
 import com.example.qrlogin.repository.AccountRepository;
 import com.example.qrlogin.repository.QRSessionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -61,5 +60,10 @@ public class AuthService {
         response.put("sessionId", sessionId);
         response.put("qrImage", "data:image/png;base64," + base64Image);
         return response;
+    }
+
+    public SessionStatusResponseDto sessionStatus(SessionStatusRequestDto requestDto) {
+        QRSession session = qrSessionRepository.findById(requestDto.getSessionId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
+        return new SessionStatusResponseDto(session.getSessionId(), session.getStatus());
     }
 }
