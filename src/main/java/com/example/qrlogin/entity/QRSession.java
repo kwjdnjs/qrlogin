@@ -18,8 +18,10 @@ public class QRSession {
     private String sessionId;
     @Enumerated(EnumType.STRING)
     private SessionStatus status;
+    private String accessToken;
+    private String refreshToken;
 
     public static QRSession create(String sessionId, SessionStatus status) {
-        return new QRSession(sessionId, status);
+        return new QRSession(sessionId, status, null, null);
     }
 }

@@ -1,6 +1,5 @@
 package com.example.qrlogin.dto;
 
-import com.example.qrlogin.enumrate.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,9 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionStatusResponseDto {
+public class ConfirmSessionRequestDto {
     private String sessionId;
-    private SessionStatus status;
-    private String accessToken;
-    private String refreshToken;
+    private String jwt;
 }

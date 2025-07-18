@@ -10,9 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionStatusResponseDto {
+public class ConfirmSessionResponseDto {
     private String sessionId;
-    private SessionStatus status;
-    private String accessToken;
-    private String refreshToken;
+    private SessionStatus sessionStatus;
 }

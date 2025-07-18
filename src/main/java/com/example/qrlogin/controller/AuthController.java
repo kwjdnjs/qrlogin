@@ -26,14 +26,12 @@ public class AuthController {
         return authService.generateSessionQR(request);
     }
 
-    /*
     @PostMapping("/api/qr/confirm")
     public ResponseEntity<?> confirmSession(@RequestBody ConfirmSessionRequestDto requestDto) {
         ConfirmSessionResponseDto responseDto = authService.confirmSession(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-*/
     @PostMapping("/api/qr/status")
     public ResponseEntity<?> SessionStatus(@RequestBody SessionStatusRequestDto requestDto) {
         SessionStatusResponseDto responseDto = authService.sessionStatus(requestDto);

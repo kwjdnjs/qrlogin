@@ -4,6 +4,7 @@ import com.example.qrlogin.dto.*;
 import com.example.qrlogin.entity.Account;
 import com.example.qrlogin.entity.QRSession;
 import com.example.qrlogin.enumrate.SessionStatus;
+import com.example.qrlogin.jwt.JWTUtil;
 import com.example.qrlogin.qr.QRUtil;
 import com.example.qrlogin.repository.AccountRepository;
 import com.example.qrlogin.repository.QRSessionRepository;
@@ -11,6 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +32,7 @@ public class AuthService {
     private final QRSessionRepository qrSessionRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JWTUtil jwtUtil;
 
     public SignUpResponseDto signUp(SignUpRequestDto requestDto) {
         if (accountRepository.existsByUsername(requestDto.getUsername())){
@@ -62,8 +66,32 @@ public class AuthService {
         return response;
     }
 
+    public ConfirmSessionResponseDto confirmSession(ConfirmSessionRequestDto requestDto) {
+        String jwt = requestDto.getJwt();
+        try {
+            jwtUtil.isExpired(jwt);
+        } catch (Exception e) {
+            throw e;
+        }
+
+        String username = jwtUtil.getUsername(jwt);
+        String role = jwtUtil.getRole(jwt);
+
+        String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+
+        QRSession session = qrSessionRepository.findById(requestDto.getSessionId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
+        session.setAccessToken(newAccess);
+        session.setRefreshToken(newRefresh);
+        session.setStatus(SessionStatus.SUCCESS);
+
+        QRSession result = qrSessionRepository.save(session);
+
+        return new ConfirmSessionResponseDto(result.getSessionId(), result.getStatus());
+    }
+
     public SessionStatusResponseDto sessionStatus(SessionStatusRequestDto requestDto) {
         QRSession session = qrSessionRepository.findById(requestDto.getSessionId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
-        return new SessionStatusResponseDto(session.getSessionId(), session.getStatus());
+        return new SessionStatusResponseDto(session.getSessionId(), session.getStatus(), session.getAccessToken(), session.getRefreshToken());
     }
 }
