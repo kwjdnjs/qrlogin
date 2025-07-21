@@ -22,19 +22,19 @@ public class AuthController {
     }
 
     @GetMapping("/api/qr/generate")
-    public Map<String, Object> generateQR(HttpServletRequest request) throws Exception {
+    public SessionQrResponse generateQR(HttpServletRequest request) throws Exception {
         return authService.generateSessionQR(request);
     }
 
     @PostMapping("/api/qr/confirm")
-    public ResponseEntity<?> confirmSession(@RequestBody ConfirmSessionRequestDto requestDto) {
-        ConfirmSessionResponseDto responseDto = authService.confirmSession(requestDto);
+    public ResponseEntity<?> confirmSession(HttpServletRequest request) throws Exception {
+        ConfirmSessionResponseDto responseDto = authService.confirmSession(request);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PostMapping("/api/qr/status")
-    public ResponseEntity<?> SessionStatus(@RequestBody SessionStatusRequestDto requestDto) {
-        SessionStatusResponseDto responseDto = authService.sessionStatus(requestDto);
+    @GetMapping("/api/qr/status")
+    public ResponseEntity<?> SessionStatus(HttpServletRequest request) {
+        SessionStatusResponseDto responseDto = authService.sessionStatus(request);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 }

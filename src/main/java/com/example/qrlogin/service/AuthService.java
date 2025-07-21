@@ -49,38 +49,31 @@ public class AuthService {
         return new SignUpResponseDto(account.getUsername());
     }
 
-    public Map<String, Object> generateSessionQR(HttpServletRequest request) throws Exception {
+    public SessionQrResponse generateSessionQR(HttpServletRequest request) throws Exception {
         HttpSession session = request.getSession(true);
         String sessionId = session.getId();
 
         qrSessionRepository.save(QRSession.create(sessionId, SessionStatus.PENDING));
 
-        var image = QRUtil.generateQRCodeImage("session:" + sessionId, 200, 200);
+        var image = QRUtil.generateQRCodeImage(session.toString(), 200, 200);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(image, "png", baos);
         String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("sessionId", sessionId);
-        response.put("qrImage", "data:image/png;base64," + base64Image);
-        return response;
+        return new SessionQrResponse("data:image/png;base64," + base64Image);
     }
 
-    public ConfirmSessionResponseDto confirmSession(ConfirmSessionRequestDto requestDto) {
-        String jwt = requestDto.getJwt();
-        try {
-            jwtUtil.isExpired(jwt);
-        } catch (Exception e) {
-            throw e;
-        }
+    public ConfirmSessionResponseDto confirmSession(HttpServletRequest request) throws Exception {
+        String accessToken = request.getHeader("access");
+        jwtUtil.isExpired(accessToken);
 
-        String username = jwtUtil.getUsername(jwt);
-        String role = jwtUtil.getRole(jwt);
+        String username = jwtUtil.getUsername(accessToken);
+        String role = jwtUtil.getRole(accessToken);
 
         String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
-        QRSession session = qrSessionRepository.findById(requestDto.getSessionId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
+        QRSession session = qrSessionRepository.findById(request.getSession().getId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
         session.setAccessToken(newAccess);
         session.setRefreshToken(newRefresh);
         session.setStatus(SessionStatus.SUCCESS);
@@ -90,8 +83,8 @@ public class AuthService {
         return new ConfirmSessionResponseDto(result.getSessionId(), result.getStatus());
     }
 
-    public SessionStatusResponseDto sessionStatus(SessionStatusRequestDto requestDto) {
-        QRSession session = qrSessionRepository.findById(requestDto.getSessionId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
+    public SessionStatusResponseDto sessionStatus(HttpServletRequest request) {
+        QRSession session = qrSessionRepository.findById(request.getSession().getId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
         return new SessionStatusResponseDto(session.getSessionId(), session.getStatus(), session.getAccessToken(), session.getRefreshToken());
     }
 }
