@@ -11,8 +11,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionStatusResponseDto {
-    private String sessionId;
     private SessionStatus status;
-    private String accessToken;
-    private String refreshToken;
 }

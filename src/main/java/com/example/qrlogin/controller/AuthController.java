@@ -3,6 +3,7 @@ package com.example.qrlogin.controller;
 import com.example.qrlogin.dto.*;
 import com.example.qrlogin.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +34,8 @@ public class AuthController {
     }
 
     @GetMapping("/api/qr/status")
-    public ResponseEntity<?> SessionStatus(HttpServletRequest request) {
-        SessionStatusResponseDto responseDto = authService.sessionStatus(request);
+    public ResponseEntity<?> SessionStatus(HttpServletRequest request, HttpServletResponse response) {
+        SessionStatusResponseDto responseDto = authService.sessionStatus(request, response);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 }

@@ -10,20 +10,15 @@ import com.example.qrlogin.repository.AccountRepository;
 import com.example.qrlogin.repository.QRSessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -83,8 +78,14 @@ public class AuthService {
         return new ConfirmSessionResponseDto(result.getSessionId(), result.getStatus());
     }
 
-    public SessionStatusResponseDto sessionStatus(HttpServletRequest request) {
+    public SessionStatusResponseDto sessionStatus(HttpServletRequest request, HttpServletResponse response) {
         QRSession session = qrSessionRepository.findById(request.getSession().getId()).orElseThrow(() -> new EntityNotFoundException("QR 세션을 찾을 수 없습니다."));
-        return new SessionStatusResponseDto(session.getSessionId(), session.getStatus(), session.getAccessToken(), session.getRefreshToken());
+
+        if (session.getStatus() == SessionStatus.SUCCESS) {
+            response.setHeader("access", session.getAccessToken());
+            response.addCookie(jwtUtil.createCookie("refresh", session.getRefreshToken(), 24*60*60));
+        }
+
+        return new SessionStatusResponseDto(session.getStatus());
     }
 }
