@@ -28,8 +28,8 @@ public class AuthController {
     }
 
     @PostMapping("/api/qr/confirm")
-    public ResponseEntity<?> confirmSession(HttpServletRequest request) throws Exception {
-        ConfirmSessionResponseDto responseDto = authService.confirmSession(request);
+    public ResponseEntity<?> confirmSession(@RequestBody ConfirmSessionRequestDto confirmRequestDto, HttpServletRequest request) throws Exception {
+        ConfirmSessionResponseDto responseDto = authService.confirmSession(confirmRequestDto, request);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
